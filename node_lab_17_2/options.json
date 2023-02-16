@@ -1,8 +1,0 @@
-{
-    "redis": {
-      "host": "redis-19367.c265.us-east-1-2.ec2.cloud.redislabs.com",
-      "port": 19367,
-      "no_ready_check": true,
-      "auth_pass": "gbknXBA17HhvrjNJrTfmVrT9XVPYz8uV"
-    }
-  }
