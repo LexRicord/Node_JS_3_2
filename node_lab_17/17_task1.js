@@ -1,4 +1,6 @@
 const redis = require('redis');
+const redisClient = require("./redis_modules/redisClient.js");
+
 const client = redis.createClient({
     socket: {
         host: 'redis-10345.c56.east-us.azure.cloud.redislabs.com',
@@ -12,7 +14,6 @@ let config = {
     "port": 6379,
     "no_ready_check": true
 }
-
 client
     .connect()
     .then(async (res) => {
