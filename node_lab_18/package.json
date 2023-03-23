@@ -1,0 +1,7 @@
+{
+  "name": "node_lab_18",
+  "version": "1.0.0",
+  "dependencies": {
+    "sequelize": "^6.29.3"
+  }
+}

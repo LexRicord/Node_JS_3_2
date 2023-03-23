@@ -1,40 +1,37 @@
 const redis = require('redis');
-let config = {
-    "host": "redis-19367.c265.us-east-1-2.ec2.cloud.redislabs.com",
-    "port": 19367,
-    "no_ready_check": false,
-    "auth_pass": "gbknXBA17HhvrjNJrTfmVrT9XVPYz8uV"
-  }
-const client = redis.createClient(config);
+const client = redis.createClient({ url: process.env.REDIS_URL });
 
-client.on('error', err => 
-{
-    console.log('error: ' + err);
+client.on('ready', function () {
+    console.log('debug', 'redisClient is ready');
 });
 
-client.on('connect',()=>
-{
-    console.log('Connection accepted');
+client.on('connect', function () {
+    console.log('debug', 'redisClient is connected');
 });
 
-client.on('end', () => 
-{
-    console.log('End');
+client.on('end', function () {
+    console.log('debug', 'redisClient is end');
 });
 
-client.publish('one', 'message 1');
+client.on('error', function (error) {
+    console.log('error', 'Error in redisClient', {error:error});
+});
 
-client.publish('two', 'message 2');
+(async () => {
+    await client.connect();
 
-setTimeout(() => 
-{
-    client.publish('one', 'message 3 from pub-client');
-}, 5000);
+    setInterval(async () => {
+        await client.publish('Publication1', 'Hello World! #1');
+    }, 2200)
+        .unref();
 
-setTimeout(() => 
-{
-    client.publish('one', 'message 4 from pub-client');
-}, 10000);
+    setInterval(async () => {
+        await client.publish('Publication2', 'Hello World! #2');
+    }, 3000)
+        .unref();
 
+    setTimeout(async () => {
+        await client.quit();
+    }, 9000);
+})();
 
-setTimeout(() => client.quit(), 15000);

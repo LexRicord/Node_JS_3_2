@@ -1,8 +1,0 @@
-{
-    "redis": {
-      "host": "redis-10345.c56.east-us.azure.cloud.redislabs.com",
-      "port": 10345,
-      "no_ready_check": true,
-      "auth_pass": "Z9JqceVLoRfYzD7LtRAXsxQHCs8h2uYw"
-    }
-  }

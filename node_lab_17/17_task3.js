@@ -1,81 +1,45 @@
 const redis = require('redis');
-let config = {
-    "host": "redis-10345.c56.east-us.azure.cloud.redislabs.com",
-    "port": 10345,
-    "no_ready_check": false,
-    "auth_pass": "Z9JqceVLoRfYzD7LtRAXsxQHCs8h2uYw"
-  }
-const client = redis.createClient(config);
+const client = redis.createClient({ url: process.env.REDIS_URL });
 
-client.on('ready', () => {
-    client.set('incr', 0);
+client.on('ready', function () {
+    console.log('debug', 'redisClient is ready');
 });
 
-client.on('error', err => {
-    console.log('error: ' + err);
+client.on('connect', function () {
+    console.log('debug', 'redisClient is connected');
+});
+
+client.on('end', function () {
+    console.log('debug', 'redisClient is end');
+});
+
+client.on('error', function (error) {
+    console.log('error', 'Error in redisClient', {error:error});
 });
 
 
-client.on('connect',()=>
-{
-    console.log('Connection accepted');
-});
+(async () => {
+    await client.connect();
 
-client.on('end', () => 
-{
-    console.log('End');
-});
+    await client.set('incr', 0);
 
-let t = setInterval(() => {
-    if(client.connected)
-    {
-        clearInterval(t);
-        incrQueries(client);
-        decrQueries(client);
 
-        client.quit();
-    
+    console.time('incr("incr") 10000 operations tine');
+    for (let i = 1; i <= 10000; ++i) {
+        await client.incr('incr');
+        if(i == 5000) await client.incr('incr').then(function (result){
+            console.log("Test out: ["+result+"]")
+        });
     }
-}, 0);
+    console.timeEnd('incr("incr") 10000 operations tine');
 
 
-function incrQueries(client, ) {
-    console.time(`10000 incr`);
-    for (let n = 0; n < 10000; n++) 
-    {
-        client.incr('incr');
+    console.time('incr("decr") 10000 operations tine');
+    for (let i = 1; i <= 10000; ++i) {
+        await client.incr('decr');
     }
-    console.timeEnd(`10000 incr`);
+    console.timeEnd('incr("decr") 10000 operations tine');
 
-    client.get('incr', (err, data) => {
-        if (err)
-        {
-             console.log(err);
-        }
-        else 
-        {
-            console.log('after incr: ' + data);
-        }
-    });
-}
 
-function decrQueries(client, count) {
-    console.time(`10000 decr`);
-    for (let n = 0; n < count; n++) 
-    {     
-        client.decr('incr');
-    }
-    console.timeEnd(`10000 decr`);
-
-    client.get('incr', (err, data) => 
-    {
-        if (err) 
-        {
-            console.log(err);
-        }
-        else 
-        {
-            console.log('after decr: ' + data);
-        }
-    });
-}
+    await client.quit();
+})();

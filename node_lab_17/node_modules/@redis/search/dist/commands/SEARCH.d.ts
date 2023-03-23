@@ -37,4 +37,4 @@ export interface SearchOptions {
 }
 export declare function transformArguments(index: string, query: string, options?: SearchOptions): RedisCommandArguments;
 export type SearchRawReply = Array<any>;
-export declare function transformReply(reply: SearchRawReply): SearchReply;
+export declare function transformReply(reply: SearchRawReply, withoutDocuments: boolean): SearchReply;

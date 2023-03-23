@@ -1,7 +1,13 @@
 const redis = require("redis");
 
 (async () => {
-    const client = redis.createClient({ legacyMode: true });
+    const client = redis.createClient({
+        host: process.env.REDIS_REMOTE_HOST,
+        port: process.env.REDIS_REMOTE_PORT,
+        //password: process.env.REDIS_PASSWORD2,
+        auth_pass: process.env.AUTH_PASS2,
+        logErrors: true,
+        legacyMode:true});
     await client.connect();
     const k = "myKey";
     const h = "myHash";
@@ -10,8 +16,8 @@ const redis = require("redis");
     // HGET/HSET work as expected
     client.HSET(h, f, "foo", (_, resp) => { console.log("HSET:", resp) }); // 0
     client.HGET(h, f,        (_, resp) => { console.log("HGET:", resp) }); // foo
-    client.hSet(h, f, "foo", (_, resp) => { console.log("hSet:", resp) }); // 0
-    client.hGet(h, f,        (_, resp) => { console.log("hGet:", resp) }); // foo
+    client.HSET(h, f, "foo", (_, resp) => { console.log("hSet:", resp) }); // 0
+    client.HGET(h, f,        (_, resp) => { console.log("hGet:", resp) }); // foo
     console.log("v4.HSET:", await client.v4.HSET(h, f, "foo"));            // 0
     console.log("v4.HGET:", await client.v4.HGET(h, f));                   // foo
     console.log("v4.hSet:", await client.v4.hSet(h, f, "foo"));            // 0
@@ -45,5 +51,4 @@ const redis = require("redis");
     console.log("v4.DEL:", await client.v4.DEL(k));                   // 0
     console.log("v4.del:", await client.v4.del(k));                   // undefined ???
 
-    // ... other commands I didn't check
 })();

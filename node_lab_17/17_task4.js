@@ -1,60 +1,44 @@
 const redis = require('redis');
-let config = {
-    "host": "redis-19367.c265.us-east-1-2.ec2.cloud.redislabs.com",
-    "port": 19367,
-    "no_ready_check": false,
-    "auth_pass": "gbknXBA17HhvrjNJrTfmVrT9XVPYz8uV"
-  }
-const client = redis.createClient(config);
-const count = 10000;
+const client = redis.createClient({ url: process.env.REDIS_URL });
 
-
-
-let t = setInterval(() => {
-    if(client.connected)
-    {
-        clearInterval(t);
-        console.time(`${count} hsets`);
-        hset(client, count);
-        console.timeEnd(`${count} hsets`);
- 
-        console.time(`${count} hgets`);
-        hget(client, count);
-        console.timeEnd(`${count} hgets`);
-
-        client.quit();
-    
-    }
-}, 0);
-
-
-client.on('error', err => 
-{
-    console.log('error: ' + err);
+client.on('ready', function () {
+    console.log('debug', 'redisClient is ready');
 });
 
-client.on('connect',()=>
-{
-    console.log('Connection accepted');
+client.on('connect', function () {
+    console.log('debug', 'redisClient is connected');
 });
 
-client.on('end', () => 
-{
-    console.log('End');
+client.on('end', function () {
+    console.log('debug', 'redisClient is end');
+});
+
+client.on('error', function (error) {
+    console.log('error', 'Error in redisClient', {error:error});
 });
 
 
-function hset(client, count) 
-{
-    for (let n = 0; n < count; n++) 
-    {
-        client.hset(n, n, JSON.stringify({id: n, val: `value - ${n}`}));
-    }
-}
+(async () => {
+    await client.connect();
 
-function hget(client, count) {
-    for (let n = 0; n < count; n++) 
-    {
-        client.hget(n, n);
+    await client.set('hash', 0);
+
+
+    console.time('HSET 10000 operations time');
+    for (let i = 1; i <= 10000; ++i) {
+        await client.hSet('MyHash', i.toString(), JSON.stringify({ id: i, value: 'value #' + i }));
     }
-}
+    console.timeEnd('HSET 10000 operations time');
+
+
+    console.time('HGET 10000 operations time');
+    for (let i = 1; i <= 10000; ++i) {
+        await client.hGet('MyHash', i.toString());
+        if (i == 9999) await client.hGet('MyHash',i.toString()).then(function (result){
+            console.log("Test out: ["+result+"]")
+        });
+    }
+    console.timeEnd('HGET 10000 operations time');
+
+    await client.quit();
+})();
